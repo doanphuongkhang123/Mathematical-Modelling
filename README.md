@@ -15,3 +15,27 @@ This computes the equilibria `P0`, `P1`, `P2`, and `P3` for the project scenario
 ```text
 equilibria_stability/outputs/equilibrium_examples.csv
 ```
+
+
+## Run experiment for robustness and sensitivity
+
+Equilibrium-analysis code is in [`robustness_sensitivity/`](robustness_sensitivity/).
+
+Run everything from main root:
+
+```bash
+python3 robustness_sensitivity/run_all.py
+```
+
+Run separate Experiment:
+
+```bash
+# Experiments 1 + 2 (sensitivity)
+python3 robustness_sensitivity/sensitivity.py
+
+# Experiments 3 + 4 (robustness)
+python3 robustness_sensitivity/robustness.py
+
+# Figures (reads the CSVs produced above)
+python3 robustness_sensitivity/plots.py
+```
