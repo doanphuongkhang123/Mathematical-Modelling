@@ -1,0 +1,60 @@
+{
+  "scenario": "washout_P0",
+  "method": "rk4",
+  "initial_state": {
+    "S": 0.5,
+    "x": 0.2,
+    "y": 0.1,
+    "z": 0.05
+  },
+  "final_state": {
+    "S": 0.9999999999999944,
+    "x": 1.5563215102332675e-88,
+    "y": 1.9841873463947073e-153,
+    "z": 8.156442876964176e-154
+  },
+  "min_state": {
+    "S": 0.5,
+    "x": 1.5563215102332675e-88,
+    "y": 1.9841873463947073e-153,
+    "z": 8.156442876964176e-154
+  },
+  "max_state": {
+    "S": 0.9999999999999944,
+    "x": 0.2,
+    "y": 0.1,
+    "z": 0.05
+  },
+  "tail_mean": {
+    "S": 0.9999999999999998,
+    "x": 3.7821644714650286e-81,
+    "y": 9.02098148524272e-140,
+    "z": 3.708274841699213e-140
+  },
+  "tail_amplitude": {
+    "S": 0.0,
+    "x": 7.550730280441695e-80,
+    "y": 3.146947821075402e-138,
+    "z": 1.2936228116779103e-138
+  },
+  "equilibrium_distances": {
+    "P0": 5.551115123125783e-15,
+    "P1": null,
+    "P2": null,
+    "P3": null
+  },
+  "expected_equilibrium": "P0",
+  "nearest_equilibrium": "P0",
+  "target_equilibrium": {
+    "S": 1.0,
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "target_distance": 5.551115123125783e-15,
+  "negative_clamps": 0,
+  "exploded": false,
+  "steps": 50000,
+  "outcome": "Complete organism washout",
+  "oscillation_checks": null
+}
