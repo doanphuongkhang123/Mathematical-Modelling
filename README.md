@@ -1,5 +1,18 @@
 # Mathematical-Modelling
 
+## Real-time demo: Interactive Food Chain
+
+An interactive, browser-based real-time demo lives in [`demo/`](demo/). 
+
+Run:
+
+```bash
+python3 -m demo.app
+# then open http://127.0.0.1:8000
+```
+
+
+
 ## Equilibria and Stability Threshold Analysis
 
 Equilibrium-analysis code is in [`equilibria_stability/`](equilibria_stability/).
@@ -39,6 +52,7 @@ python3 robustness_sensitivity/robustness.py
 # Figures (reads the CSVs produced above)
 python3 robustness_sensitivity/plots.py
 ```
+
 
 ## Run main simulations
 
