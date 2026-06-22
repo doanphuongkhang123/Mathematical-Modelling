@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Interactive food chain</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171e2e; --panel2:#1f2740; --ink:#e8ecf5; --muted:#93a0bd;
+    --S:#3ba7ff; --x:#36d399; --y:#ffae42; --z:#ff5d6c; --line:#2b3550;
+    --good:#36d399; --bad:#ff5d6c; --warn:#ffae42; --info:#3ba7ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{padding:8px 18px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  header h1{margin:0;font-size:16px;font-weight:700}
+  header p{margin:2px 0 0;color:var(--muted);font-size:11.5px}
+  .wrap{display:grid;grid-template-columns:264px 1fr;gap:0;flex:1 1 auto;min-height:0}
+  .side{background:var(--panel);border-right:1px solid var(--line);padding:14px;overflow:auto}
+  .main{padding:10px 12px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:0}
+  .card h3{margin:0 0 6px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  label.k{display:block;font-size:11px;color:var(--muted);margin:12px 0 3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  select,button{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:13px}
+  button{cursor:pointer;font-weight:600}
+  button.primary{background:#2c6fd6;border-color:#2c6fd6}
+  button.ghost{background:transparent}
+  .row{display:flex;gap:8px;margin-top:9px}
+  .slider{margin:5px 0 2px;font-size:12.5px}
+  input[type=range]{width:100%}
+  .val{float:right;color:var(--ink);font-variant-numeric:tabular-nums}
+  .sname{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4}
+  .legend{display:flex;gap:13px;flex-wrap:wrap;font-size:12px;margin-bottom:4px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  canvas{width:100%;display:block;border-radius:8px}
+  /* top region: chart + vessel */
+  .top{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;flex:1.45 1 0;min-height:0}
+  .chartcard{display:flex;flex-direction:column;min-height:0}
+  .chartcard canvas{flex:1 1 0;min-height:0}
+  .tankcard{display:flex;flex-direction:column;min-height:0}
+  .tankcard canvas{flex:1 1 0;min-height:0}
+  /* bottom region: 3 info cards */
+  .bottom{display:grid;grid-template-columns:1.05fr 1fr 1.15fr;gap:10px;flex:1 1 0;min-height:0}
+  .bottom .card{overflow:auto}
+  .regime{font-size:16px;font-weight:700;margin:1px 0 5px;line-height:1.15}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+  th,td{text-align:right;padding:2px 5px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;color:var(--muted)}
+  .muted{color:var(--muted)}
+  .small{font-size:11px}
+  .err{color:var(--bad);font-size:11.5px;margin-top:7px}
+  /* eigenvalue + threshold rows */
+  .eig{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5}
+  .kv{display:flex;justify-content:space-between;font-size:12px;margin:2px 0}
+  .kv b{font-variant-numeric:tabular-nums}
+  .thr{margin:7px 0}
+  .thr .lab{display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px}
+  .bar{position:relative;height:8px;background:var(--panel2);border-radius:5px;overflow:hidden}
+  .bar i{position:absolute;top:0;bottom:0;left:50%}
+  .center{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#55608a}
+  .gauge{position:relative;height:14px;background:var(--panel2);border-radius:7px;margin-top:4px;overflow:hidden}
+  .gauge .band{position:absolute;top:0;bottom:0;background:rgba(54,211,153,.22);border-left:1px solid var(--good);border-right:1px solid var(--good)}
+  .gauge .mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+  .badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:10.5px;font-weight:700;margin-left:6px}
+  .ftogs{display:flex;gap:6px;margin-top:4px}
+  .ftog{flex:1;padding:6px;font-size:13px;border-radius:8px;border:1px solid var(--line);
+        background:var(--panel2);color:var(--muted);cursor:pointer;font-weight:700}
+  .ftog.on{background:#2c6fd622;border-color:#2c6fd6;color:var(--info)}
+  .pgroup{display:none;margin-top:4px;padding:6px 8px;border:1px dashed var(--line);border-radius:8px}
+  .pgroup.show{display:block}
+  .chart-hint{font-size:10px;margin-left:auto}
+  .livebtn{width:auto;padding:2px 9px;font-size:10.5px;border-radius:999px;border:1px solid var(--line);
+           background:var(--panel2);color:var(--muted);cursor:pointer}
+  .livebtn.on{background:#36d39922;border-color:var(--good);color:var(--good)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧪 Interactive food chain &nbsp;<span class="muted" style="font-size:11px;font-weight:400">El-Sheikh &amp; Mahrouf (2005), Chaos Solitons &amp; Fractals 23:1475</span></h1>
+  <p>Model (1.2): &nbsp;Ṡ = 1−S−f₁(S)x &nbsp;|&nbsp; ẋ = x(f₁(S)−D₁)−f₂(x)y &nbsp;|&nbsp; ẏ = y(f₂(x)−D₂)−f₃(y)z &nbsp;|&nbsp; ż = z(f₃(y)−D₃), &nbsp; fᵢ Monod, &nbsp; Dᵢ distinct removal rates.</p>
+</header>
+
+<div class="wrap">
+  <aside class="side">
+    <label class="k">Scenario preset</label>
+    <select id="scenario"></select>
+    <div class="sname" id="scenario-desc"></div>
+
+    <label class="k">Removal rates (the paper's knobs)</label>
+    <div class="slider">D₁ — prey removal <span class="val" id="v-D1"></span>
+      <input type="range" id="D1" min="0.05" max="3" step="0.005"></div>
+    <div class="slider">D₂ — predator removal <span class="val" id="v-D2"></span>
+      <input type="range" id="D2" min="0.05" max="3" step="0.005"></div>
+    <div class="slider">D₃ — top-predator removal <span class="val" id="v-D3"></span>
+      <input type="range" id="D3" min="0.05" max="3" step="0.005"></div>
+
+    <label class="k">Response functions &nbsp;<span class="muted" style="text-transform:none;font-weight:400">fᵢ(u)=aᵢ·u/(kᵢ+u)</span></label>
+    <div class="ftogs">
+      <button class="ftog" id="btn-f1">f₁</button>
+      <button class="ftog" id="btn-f2">f₂</button>
+      <button class="ftog" id="btn-f3">f₃</button>
+    </div>
+    <div class="pgroup" id="grp-f1">
+      <div class="slider">a₁ — prey max growth <span class="val" id="v-a1"></span>
+        <input type="range" id="a1" min="0.1" max="8" step="0.02"></div>
+      <div class="slider">k₁ — prey half-saturation <span class="val" id="v-k1"></span>
+        <input type="range" id="k1" min="0.01" max="4" step="0.01"></div>
+    </div>
+    <div class="pgroup" id="grp-f2">
+      <div class="slider">a₂ — predator max growth <span class="val" id="v-a2"></span>
+        <input type="range" id="a2" min="0.1" max="8" step="0.02"></div>
+      <div class="slider">k₂ — predator half-saturation <span class="val" id="v-k2"></span>
+        <input type="range" id="k2" min="0.01" max="4" step="0.01"></div>
+    </div>
+    <div class="pgroup" id="grp-f3">
+      <div class="slider">a₃ — top-pred. max growth <span class="val" id="v-a3"></span>
+        <input type="range" id="a3" min="0.1" max="8" step="0.02"></div>
+      <div class="slider">k₃ — top-pred. half-saturation <span class="val" id="v-k3"></span>
+        <input type="range" id="k3" min="0.01" max="4" step="0.01"></div>
+    </div>
+
+    <div class="row">
+      <button class="primary" id="play">▶ Play</button>
+      <button class="ghost" id="reset">↺ Reset</button>
+    </div>
+    <div class="sname">Speed fixed at <b>0.5×</b>. Tip: load <b>Coexistence (P₃)</b>,
+       Play, then drag <b>D₃</b> up — watch top predator
+       <span style="color:var(--z)">z</span> wash out (P₃→P₂) and the eigenvalues
+       &amp; thresholds update live.</div>
+    <div class="err" id="err"></div>
+  </aside>
+
+  <main class="main">
+    <!-- TOP: live chart + vessel -->
+    <div class="top">
+      <div class="card chartcard">
+        <div class="legend">
+          <span><i class="dot" style="background:var(--S)"></i> S nutrient</span>
+          <span><i class="dot" style="background:var(--x)"></i> x prey</span>
+          <span><i class="dot" style="background:var(--y)"></i> y predator</span>
+          <span><i class="dot" style="background:var(--z)"></i> z top predator</span>
+          <span class="muted" id="clock"></span>
+          <span class="chart-hint muted">drag = pan · wheel = zoom · drag bar = scroll</span>
+          <button id="livebtn" class="livebtn">● LIVE</button>
+        </div>
+        <canvas id="chart" height="300" style="cursor:grab"></canvas>
+      </div>
+
+      <div class="card tankcard">
+        <h3>Live chemostat vessel <span class="muted" style="text-transform:none;font-weight:400">— particles ∝ population, blue level ∝ nutrient S</span></h3>
+        <canvas id="tank" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- BOTTOM: 3 information panels -->
+    <div class="bottom">
+      <!-- 1. Regime + local stability -->
+      <div class="card">
+        <h3>Regime &amp; local stability</h3>
+        <div class="regime" id="regime">—</div>
+        <div id="pill"></div>
+        <div class="kv" style="margin-top:7px"><span class="muted">Active equilibrium</span><b id="stab-active">—</b></div>
+        <div class="kv"><span class="muted">Type</span><b id="stab-kind">—</b></div>
+        <div class="kv"><span class="muted">max Re(λ)</span><b id="stab-maxre">—</b></div>
+        <div class="muted small" style="margin:5px 0 2px">Jacobian eigenvalues (Routh–Hurwitz / Hopf)</div>
+        <div class="eig" id="stab-eigs">—</div>
+      </div>
+
+      <!-- 2. Invasion thresholds -->
+      <div class="card">
+        <h3>Trophic invasion thresholds</h3>
+        <div class="muted small" style="margin-bottom:4px">Growth rate of the next species when rare. &gt;0 ⇒ invades &amp; persists.</div>
+        <div class="thr" id="thr-prey"></div>
+        <div class="thr" id="thr-y"></div>
+        <div class="thr" id="thr-z"></div>
+        <div class="muted small" id="thr-note" style="margin-top:6px"></div>
+      </div>
+
+      <!-- 3. Equilibria + live diagnostics -->
+      <div class="card">
+        <h3>Equilibria &amp; live diagnostics</h3>
+        <table id="eqtable">
+          <thead><tr><th>pt</th><th>S</th><th>x</th><th>y</th><th>z</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="kv" style="margin-top:6px"><span class="muted">P₀ threshold f₁(1)−D₁</span><b id="d-threshold">—</b></div>
+        <div class="kv"><span class="muted">Total biomass M = S+x+y+z</span><b id="d-biomass">—</b></div>
+        <div class="gauge" id="biogauge"><div class="band" id="bioband"></div><div class="mark" id="biomark"></div></div>
+        <div class="muted small" id="bioband-txt" style="margin-top:2px"></div>
+        <div class="kv" style="margin-top:5px"><span class="muted">Nearest equilibrium</span><b id="d-nearest">—</b></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ---- Scenario presets (from equilibria_stability/data/scenario_parameters.csv) ----
+const PARAM_NAMES = ["a1","k1","a2","k2","a3","k3","D1","D2","D3"];
+const SCENARIOS = {
+  "coexistence_P3":            {p:[4.8,0.17,4.3,1.85,4.6,1.66,0.72,1.11,0.665],
+     d:"Full 4-species coexistence (P₃). The headline equilibrium of the paper."},
+  "oscillatory_interior_response":{p:[6.52,1.76,5.07,2.64,3.78,0.0466,1.14,0.778,0.488],
+     d:"Delicate interior equilibrium (very small y,z) from the Hopf-bifurcation section; transient swings before the predators settle or collapse."},
+  "coexistence_low_D3":        {p:[4.8,0.17,4.3,1.85,4.6,1.66,0.72,1.11,0.4655],
+     d:"Low top-predator removal: strong, persistent top predator z."},
+  "coexistence_high_D3":       {p:[4.8,0.17,4.3,1.85,4.6,1.66,0.72,1.11,0.8645],
+     d:"High top-predator removal: z barely survives — near washout of z."},
+  "top_predator_washout_high_D3":{p:[4.8,0.17,4.3,1.85,4.6,1.66,0.72,1.11,0.9975],
+     d:"D₃ too high: top predator z washes out, system settles to P₂."},
+  "prey_first_predator_P2":    {p:[2.0,0.5,2.0,1.0,0.5,1.0,0.5,0.5,0.7],
+     d:"Only prey + first predator survive (P₂); top predator cannot establish."},
+  "prey_only_P1":              {p:[2.0,0.5,0.5,1.0,1.0,1.0,0.5,0.6,0.6],
+     d:"Only prey survives on the nutrient (P₁); both predators wash out."},
+  "washout_P0":                {p:[0.6,0.5,1.5,0.5,1.2,0.4,0.8,0.7,0.7],
+     d:"Total washout (P₀): even the prey cannot invade, f₁(1)−D₁ < 0."},
+};
+const INIT = [0.5, 0.30, 0.20, 0.10];
+const COLORS = {S:"#3ba7ff", x:"#36d399", y:"#ffae42", z:"#ff5d6c"};
+const KEYS = ["S","x","y","z"];
+const SPEED = 0.5;            // fixed simulation speed (requested)
+
+// ---- State ----
+let params = {};
+let state = INIT.slice();
+let tGlobal = 0;
+let buf = [];                 // [{t,S,x,y,z}]
+const WIN = 60;               // default visible width (time units)
+const HISTORY = 1200;         // how much past history is retained for scrollback
+// ---- Chart view (pan / zoom) ----
+let viewSpan = WIN;           // visible time width
+let viewStart = 0;            // left edge (time) when not following
+let follow = true;            // auto-scroll with the live front
+let chartLayout = null;       // last drawn geometry, for hit-testing
+let drag = null;              // {mode:'pan'|'scroll', x0, vs0}
+let running = false, inFlight = false, timer = null;
+let lastRegime = null;
+let converged = false, settleCount = 0;
+const SETTLE_EPS = 8e-5, SETTLE_NEEDED = 3;
+function clearConvergence(){ converged = false; settleCount = 0; }
+
+// ---- DOM ----
+const $ = id => document.getElementById(id);
+const scenarioSel = $("scenario");
+Object.keys(SCENARIOS).forEach(k=>{
+  const o=document.createElement("option"); o.value=k;
+  o.textContent=k.replace(/_/g," "); scenarioSel.appendChild(o);
+});
+function readScenario(name){
+  const arr=SCENARIOS[name].p, p={}; PARAM_NAMES.forEach((n,i)=>p[n]=arr[i]); return p;
+}
+function syncSlidersFromParams(){
+  PARAM_NAMES.forEach(n=>{ const el=$(n); if(!el) return; el.value=params[n];
+    $("v-"+n).textContent=(+params[n]).toFixed(n[0]==="k"?3:2); });
+}
+function loadScenario(name, resetTraj=true){
+  params=readScenario(name); $("scenario-desc").textContent=SCENARIOS[name].d;
+  syncSlidersFromParams(); if(resetTraj) resetTrajectory(); refreshEquilibria();
+}
+function resetTrajectory(){ state=INIT.slice(); tGlobal=0; buf=[]; }
+
+// ---- Server calls ----
+async function post(path, body){
+  const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  return r.json();
+}
+async function refreshEquilibria(){
+  try{
+    const res=await post("/equilibria",{params});
+    if(res.error){ $("err").textContent=res.error; return; }
+    $("err").textContent=""; lastRegime=res; renderAll(res);
+  }catch(e){ $("err").textContent=String(e); }
+}
+async function tick(){
+  if(!running||inFlight) return; inFlight=true;
+  const span=0.8*SPEED, prevState=state.slice();
+  try{
+    const res=await post("/step",{params, state, span, dt:0.01, samples:24});
+    if(res.error){ $("err").textContent=res.error; running=false; updatePlayBtn(); return; }
+    const t0=tGlobal;
+    res.times.forEach((dt,i)=>{ const s=res.states[i]; buf.push({t:t0+dt,S:s[0],x:s[1],y:s[2],z:s[3]}); });
+    tGlobal=t0+res.times[res.times.length-1]; state=res.state;
+    const cutoff=tGlobal-HISTORY; while(buf.length&&buf[0].t<cutoff) buf.shift();
+    if(res.exploded) $("err").textContent="Solution diverged (unbounded) — try smaller removal rates.";
+    let maxRate=0; for(let i=0;i<4;i++) maxRate=Math.max(maxRate,Math.abs(state[i]-prevState[i]));
+    maxRate/=Math.max(span,1e-9);
+    if(maxRate<SETTLE_EPS && !detectOscillation()) settleCount++; else settleCount=0;
+    if(settleCount>=SETTLE_NEEDED){ converged=true; running=false; updatePlayBtn(); }
+  }catch(e){ $("err").textContent=String(e); }
+  finally{ inFlight=false; }
+}
+
+// ---- Chart ----
+const chart=$("chart"), cctx=chart.getContext("2d");
+const tank=$("tank"), tctx=tank.getContext("2d");
+function fitCanvas(cv){
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight||cv.height;
+  cv.width=w*dpr; cv.height=h*dpr; const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); return {w,h};
+}
+// first index with buf[i].t >= t  (buf is time-sorted)
+function idxAtTime(t){
+  let lo=0, hi=buf.length;
+  while(lo<hi){ const mid=(lo+hi)>>1; if(buf[mid].t<t) lo=mid+1; else hi=mid; }
+  return lo;
+}
+function drawChart(){
+  const {w,h}=fitCanvas(chart); cctx.clearRect(0,0,w,h);
+  const padL=42,padR=10,padT=8, sbH=8, sbY=h-22, x0=padL,x1=w-padR,y0=padT,y1=sbY-6;
+  const tMin = buf.length?buf[0].t:0, tMax = Math.max(tGlobal, viewSpan);
+  // resolve the visible [viewStart, viewEnd]
+  if(follow) viewStart = tMax - viewSpan;
+  viewSpan = Math.max(2, Math.min(viewSpan, HISTORY));
+  viewStart = Math.max(tMin, Math.min(viewStart, tMax - viewSpan));
+  if(viewStart < tMin) viewStart = tMin;
+  const viewEnd = viewStart + viewSpan;
+
+  cctx.fillStyle="#0c1120"; cctx.fillRect(x0,y0,x1-x0,y1-y0);
+
+  // y-range from the VISIBLE points (so zoom rescales nicely)
+  const iA=Math.max(0, idxAtTime(viewStart)-1), iB=Math.min(buf.length, idxAtTime(viewEnd)+1);
+  let ymax=1.05; for(let i=iA;i<iB;i++){ const p=buf[i]; ymax=Math.max(ymax,p.S,p.x,p.y,p.z); } ymax*=1.1;
+  const X=t=>x0+(t-viewStart)/viewSpan*(x1-x0), Y=v=>y1-(v/ymax)*(y1-y0);
+
+  cctx.strokeStyle="#1c2540"; cctx.fillStyle="#6b7896"; cctx.font="10px system-ui"; cctx.textAlign="right";
+  for(let g=0;g<=4;g++){ const v=ymax*g/4, yy=Y(v); cctx.beginPath();cctx.moveTo(x0,yy);cctx.lineTo(x1,yy);cctx.stroke(); cctx.fillText(v.toFixed(2),x0-5,yy+3); }
+  // x grid + time ticks
+  cctx.textAlign="center";
+  for(let g=0;g<=5;g++){ const tt=viewStart+viewSpan*g/5, xx=X(tt);
+    cctx.strokeStyle="#141b30"; cctx.beginPath();cctx.moveTo(xx,y0);cctx.lineTo(xx,y1);cctx.stroke();
+    cctx.fillStyle="#6b7896"; cctx.fillText(tt.toFixed(1), xx, y1+12); }
+
+  // series (decimated so it stays smooth when zoomed out)
+  const stride=Math.max(1, Math.floor((iB-iA)/2000));
+  for(const k of KEYS){
+    cctx.strokeStyle=COLORS[k]; cctx.lineWidth=1.7; cctx.beginPath(); let st=false;
+    for(let i=iA;i<iB;i+=stride){ const p=buf[i]; const px=X(p.t),py=Y(p[k]); if(!st){cctx.moveTo(px,py);st=true;} else cctx.lineTo(px,py); }
+    cctx.stroke();
+  }
+
+  // scrollbar: track over full history [tMin,tMax], thumb over [viewStart,viewEnd]
+  const totSpan=Math.max(1e-9, tMax-tMin);
+  const SX=t=>x0+(t-tMin)/totSpan*(x1-x0);
+  cctx.fillStyle="#141b30"; roundRect(x0,sbY,x1-x0,sbH,4); cctx.fill();
+  const thX=SX(viewStart), thW=Math.max(14, (viewSpan/totSpan)*(x1-x0));
+  cctx.fillStyle=follow?"#36d39966":"#3ba7ff88"; roundRect(thX,sbY,Math.min(thW,x1-thX),sbH,4); cctx.fill();
+
+  chartLayout={x0,x1,y0,y1,sbY,sbH,viewStart,viewEnd,viewSpan,tMin,tMax};
+  $("clock").textContent="t = "+tGlobal.toFixed(1)+(converged?"  ✓ converged":"")+(follow?"":"  ⏸ history");
+  $("livebtn").classList.toggle("on", follow);
+}
+function roundRect(x,y,w,h,r){ cctx.beginPath(); cctx.moveTo(x+r,y); cctx.arcTo(x+w,y,x+w,y+h,r); cctx.arcTo(x+w,y+h,x,y+h,r); cctx.arcTo(x,y+h,x,y,r); cctx.arcTo(x,y,x+w,y,r); cctx.closePath(); }
+
+// ---- Chart pan / zoom interactions ----
+function mouseX(e){ return e.clientX - chart.getBoundingClientRect().left; }
+function mouseY(e){ return e.clientY - chart.getBoundingClientRect().top; }
+function curBounds(){ const tMax=Math.max(tGlobal,viewSpan), tMin=buf.length?buf[0].t:0; return {tMax,tMin}; }
+function applyView(nstart, nspan){
+  const {tMax,tMin}=curBounds();
+  viewSpan=Math.max(2, Math.min(HISTORY, nspan));
+  if(nstart + viewSpan >= tMax - 1e-6){ follow=true; }
+  else { follow=false; viewStart=Math.max(tMin, nstart); }
+}
+chart.addEventListener("wheel",(e)=>{
+  e.preventDefault();
+  const L=chartLayout; if(!L) return;
+  const frac=Math.max(0,Math.min(1,(mouseX(e)-L.x0)/(L.x1-L.x0)));
+  const tCursor=viewStart+frac*viewSpan;
+  const factor=e.deltaY<0?0.85:1.18;
+  const nspan=viewSpan*factor;
+  applyView(tCursor - frac*nspan, nspan);
+},{passive:false});
+chart.addEventListener("mousedown",(e)=>{
+  const L=chartLayout; if(!L) return;
+  const mx=mouseX(e), my=mouseY(e);
+  if(my>=L.sbY-4 && my<=L.sbY+L.sbH+4){           // scrollbar
+    const {tMax,tMin}=curBounds(), tot=Math.max(1e-9,tMax-tMin);
+    const tClick=tMin+(mx-L.x0)/(L.x1-L.x0)*tot;
+    const thumbHalf=viewSpan/2;
+    // if click is off the thumb, jump-center it on the click
+    if(tClick<viewStart || tClick>viewStart+viewSpan) applyView(tClick-thumbHalf, viewSpan);
+    drag={mode:"scroll", x0:mx, vs0:viewStart, tot};
+  } else if(mx>=L.x0 && mx<=L.x1 && my>=L.y0 && my<=L.y1){  // plot area → pan
+    drag={mode:"pan", x0:mx, vs0:viewStart}; chart.style.cursor="grabbing";
+  }
+});
+window.addEventListener("mousemove",(e)=>{
+  if(!drag) return; const L=chartLayout; if(!L) return; const mx=mouseX(e), wpx=L.x1-L.x0;
+  if(drag.mode==="scroll"){ applyView(drag.vs0 + (mx-drag.x0)/wpx*drag.tot, viewSpan); }
+  else { applyView(drag.vs0 - (mx-drag.x0)/wpx*viewSpan, viewSpan); }
+});
+window.addEventListener("mouseup",()=>{ if(drag){ drag=null; chart.style.cursor="grab"; } });
+chart.addEventListener("dblclick",()=>{ follow=true; });
+$("livebtn").addEventListener("click",()=>{ follow=true; });
+
+// ---- Vessel ----
+let particles={x:[],y:[],z:[]};
+function syncParticles(key,count){ const a=particles[key]; while(a.length<count)a.push({px:Math.random(),py:Math.random()}); while(a.length>count)a.pop(); }
+function drawTank(){
+  const {w,h}=fitCanvas(tank); tctx.clearRect(0,0,w,h);
+  const bx=8,by=6,bw=w-16,bh=h-12;
+  const cur=buf.length?buf[buf.length-1]:{S:state[0],x:state[1],y:state[2],z:state[3]};
+  tctx.fillStyle="#0c1120"; tctx.fillRect(bx,by,bw,bh);
+  const Sc=Math.max(0,Math.min(1,cur.S)), wl=by+bh-Sc*bh;
+  const g=tctx.createLinearGradient(0,wl,0,by+bh); g.addColorStop(0,"rgba(59,167,255,.35)"); g.addColorStop(1,"rgba(59,167,255,.12)");
+  tctx.fillStyle=g; tctx.fillRect(bx,wl,bw,by+bh-wl);
+  tctx.strokeStyle="rgba(59,167,255,.7)"; tctx.beginPath(); tctx.moveTo(bx,wl); tctx.lineTo(bx+bw,wl); tctx.stroke();
+  const SCALE=22,MAXP=55,R={x:3,y:4,z:5.2};
+  [["x",cur.x],["y",cur.y],["z",cur.z]].forEach(([k,v])=>{
+    const n=Math.max(0,Math.min(MAXP,Math.round(v*SCALE))); syncParticles(k,n); tctx.fillStyle=COLORS[k];
+    for(const p of particles[k]){ p.px+=(Math.random()-.5)*.012; p.py+=(Math.random()-.5)*.012; p.px=Math.max(0,Math.min(1,p.px)); p.py=Math.max(0,Math.min(1,p.py)); const cx=bx+5+p.px*(bw-10),cy=by+5+p.py*(bh-10); tctx.beginPath();tctx.arc(cx,cy,R[k],0,7);tctx.fill(); }
+  });
+  tctx.strokeStyle="#2b3550"; tctx.lineWidth=1.4; tctx.strokeRect(bx,by,bw,bh);
+}
+
+// ---- Oscillation detector ----
+function detectOscillation(){
+  if(buf.length<40) return false;
+  const recent=buf.slice(-Math.min(buf.length,120)); let best=0;
+  for(const k of ["x","y","z","S"]){ let mn=1/0,mx=-1/0,s=0; for(const p of recent){mn=Math.min(mn,p[k]);mx=Math.max(mx,p[k]);s+=p[k];} const m=s/recent.length; if(m>1e-3) best=Math.max(best,(mx-mn)/(2*m)); }
+  return best>0.06;
+}
+
+// ---- Render: combine everything ----
+const LEVELCOL={0:"#ff5d6c",1:"#ffae42",2:"#3ba7ff",3:"#36d399"};
+function fmtEig(re,im){
+  const r=re.toFixed(3); if(Math.abs(im)<1e-6) return r;
+  return `${r} ${im<0?"−":"+"} ${Math.abs(im).toFixed(3)} i`;
+}
+function thrRow(elId, name, sub, val){
+  const el=$(elId);
+  if(val===null||val===undefined){ el.innerHTML=`<div class="lab"><span>${name}</span><span class="muted">n/a (lower level absent)</span></div><div class="bar"><div class="center"></div></div>`; return; }
+  const pos=val>0, col=pos?"var(--good)":"var(--bad)";
+  const frac=Math.max(-1,Math.min(1,val/1.0)), wpct=Math.abs(frac)*50;
+  const fill=pos?`left:50%;width:${wpct}%;background:${col}`:`right:50%;width:${wpct}%;background:${col}`;
+  el.innerHTML=`<div class="lab"><span>${name} <span class="muted">${sub}</span></span>`+
+    `<span style="color:${col};font-variant-numeric:tabular-nums">${val>=0?"+":""}${val.toFixed(3)} ${pos?"↑ invades":"↓ washes out"}</span></div>`+
+    `<div class="bar"><div class="center"></div><i style="${fill}"></i></div>`;
+}
+function renderAll(res){
+  // regime + oscillation flag
+  let label=res.label; const osc=detectOscillation();
+  if(res.level>=2 && osc) label+=" — oscillating";
+  $("regime").textContent=label;
+  const c=LEVELCOL[res.level]||"#93a0bd";
+  let pill=`<span class="pill" style="background:${c}22;color:${c}">level ${res.level}/3</span>`;
+  if(res.stability && res.stability.hopf_near) pill+=`<span class="pill" style="background:#ffae4222;color:var(--warn);margin-left:6px">near Hopf</span>`;
+  $("pill").innerHTML=pill;
+
+  // stability
+  const st=res.stability||{};
+  $("stab-active").textContent=res.active||"—";
+  $("stab-kind").textContent=st.kind||"—";
+  const sc = st.max_re<-1e-7?"var(--good)":(st.max_re>1e-7?"var(--bad)":"var(--warn)");
+  $("stab-maxre").innerHTML=`<span style="color:${sc}">${st.max_re!=null?st.max_re.toFixed(4):"—"}</span>`;
+  $("stab-eigs").innerHTML=(st.eigs||[]).map(e=>`λ = ${fmtEig(e[0],e[1])}`).join("<br>")||"—";
+
+  // thresholds
+  const th=res.thresholds||{};
+  thrRow("thr-prey","Prey x","f₁(1)−D₁",th.prey);
+  thrRow("thr-y","Predator y","f₂(x₁)−D₂",th.y);
+  thrRow("thr-z","Top predator z","f₃(y₂)−D₃",th.z);
+  $("thr-note").textContent="Sequential rule: each level needs the one below it established first.";
+
+  // equilibria table
+  const tb=$("eqtable").querySelector("tbody"); tb.innerHTML="";
+  for(const name of ["P0","P1","P2","P3"]){
+    const eq=res.equilibria[name], tr=document.createElement("tr");
+    const tag=name.replace("P","P");
+    if(eq) tr.innerHTML=`<td${name===res.active?' style="color:var(--ink)"':''}>${tag}${name===res.active?" ◀":""}</td>`+eq.map(v=>`<td>${v.toFixed(3)}</td>`).join("");
+    else tr.innerHTML=`<td>${tag}</td><td colspan="4" class="muted">—</td>`;
+    tb.appendChild(tr);
+  }
+  const cur=buf.length?buf[buf.length-1]:{S:state[0],x:state[1],y:state[2],z:state[3]};
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td style="color:var(--ink)"><b>live</b></td>`+[cur.S,cur.x,cur.y,cur.z].map(v=>`<td><b>${v.toFixed(3)}</b></td>`).join("");
+  tb.appendChild(tr);
+
+  // diagnostics that depend only on params
+  $("d-threshold").innerHTML=`<span style="color:${res.threshold<0?'var(--bad)':'var(--good)'}">${res.threshold.toFixed(3)}</span>`;
+  renderLiveDiagnostics();
+}
+function renderLiveDiagnostics(){
+  if(!lastRegime) return;
+  const cur=buf.length?buf[buf.length-1]:{S:state[0],x:state[1],y:state[2],z:state[3]};
+  const M=cur.S+cur.x+cur.y+cur.z;
+  $("d-biomass").textContent=M.toFixed(3);
+  // biomass gauge with dissipativity band [1/Dmax, 1/Dmin] (Theorem 2.1)
+  const b=lastRegime.biomass_bounds;
+  if(b){
+    const axMax=Math.max(b.upper, M)*1.15;
+    const pc=v=>Math.max(0,Math.min(100,v/axMax*100));
+    $("bioband").style.left=pc(b.lower)+"%"; $("bioband").style.width=(pc(b.upper)-pc(b.lower))+"%";
+    $("biomark").style.left=pc(M)+"%";
+    $("bioband-txt").innerHTML=`attracting band [1/D<sub>max</sub>, 1/D<sub>min</sub>] = [${b.lower.toFixed(3)}, ${b.upper.toFixed(3)}] &nbsp;(Thm 2.1)`;
+  }
+  // nearest equilibrium
+  let best=null,bestd=1/0;
+  for(const name of ["P0","P1","P2","P3"]){
+    const eq=lastRegime.equilibria[name]; if(!eq) continue;
+    const d=Math.hypot(cur.S-eq[0],cur.x-eq[1],cur.y-eq[2],cur.z-eq[3]);
+    if(d<bestd){bestd=d;best=name;}
+  }
+  if(best){ const close=bestd<1e-2; $("d-nearest").innerHTML=`${best} &nbsp;<span class="muted">dist</span> <span style="color:${close?'var(--good)':'var(--ink)'}">${bestd.toFixed(4)}</span>`; }
+}
+
+// ---- Loops ----
+function frame(){ drawChart(); drawTank(); if(lastRegime){ renderAll(lastRegime); } requestAnimationFrame(frame); }
+function updatePlayBtn(){ $("play").textContent = running?"⏸ Pause":(converged?"▶ Replay":"▶ Play"); }
+
+// ---- Controls ----
+scenarioSel.addEventListener("change",()=>{ clearConvergence(); loadScenario(scenarioSel.value,true); running=true; updatePlayBtn(); });
+PARAM_NAMES.forEach(n=>{
+  const el=$(n); if(!el) return;
+  el.addEventListener("input",()=>{
+    params[n]=+el.value; $("v-"+n).textContent=(+el.value).toFixed(n[0]==="k"?3:2);
+    refreshEquilibria(); clearConvergence(); if(!running){running=true;updatePlayBtn();}
+  });
+});
+// f1/f2/f3 buttons reveal the hidden a,k sliders of each response function
+[1,2,3].forEach(i=>{
+  $("btn-f"+i).addEventListener("click",()=>{
+    $("grp-f"+i).classList.toggle("show");
+    $("btn-f"+i).classList.toggle("on");
+  });
+});
+$("play").addEventListener("click",()=>{ if(!running&&converged){clearConvergence();resetTrajectory();} running=!running; updatePlayBtn(); });
+$("reset").addEventListener("click",()=>{ clearConvergence(); resetTrajectory(); running=true; updatePlayBtn(); refreshEquilibria(); });
+
+// ---- Init ----
+scenarioSel.value="coexistence_P3";
+loadScenario("coexistence_P3",true);
+running=true; updatePlayBtn();
+timer=setInterval(tick,90);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
