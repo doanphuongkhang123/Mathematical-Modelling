@@ -1,0 +1,125 @@
+% Slides 13--17: experiment design and numerical outcomes.
+
+\begin{frame}{Five Numerical Experiments}
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{p{0.30\textwidth}cp{0.42\textwidth}}
+    \toprule
+    Scenario & Target & Expected long-run behavior \\
+    \midrule
+    Washout & $P_0$ & Nutrient returns to $1$; all organisms vanish \\
+    Prey only & $P_1$ & Prey persists; both predators vanish \\
+    Two-level survival & $P_2$ & Prey and first predator persist \\
+    Coexistence & $P_3$ & All four state variables remain positive \\
+    Oscillatory response & $P_3$ & Slowly damped oscillation near coexistence \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.38cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \keypoint{Method}\par RK4, $h=0.01$
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \keypoint{Initial state}\par $(0.5,0.2,0.1,0.05)$
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \keypoint{Horizon}\par $500$; oscillatory run $2000$
+    \end{column}
+  \end{columns}
+  \sourcefoot{Fixed representative parameter sets; no random generation and no experimental calibration.}
+\end{frame}
+
+\begin{frame}{The Washout Hierarchy}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \centering
+      \keypoint{$P_0$: complete washout}\par
+      \includegraphics[width=\linewidth]{washout_P0_timeseries.png}
+      {\fontsize{11}{14}\selectfont
+        $S\to1$; distance $5.55\times10^{-15}$}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \centering
+      \keypoint{$P_1$: prey survives}\par
+      \includegraphics[width=\linewidth]{prey_only_P1_timeseries.png}
+      {\fontsize{11}{14}\selectfont
+        $(S,x)\to(0.1667,1.6667)$}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \centering
+      \keypoint{$P_2$: two levels survive}\par
+      \includegraphics[width=\linewidth]{prey_first_predator_P2_timeseries.png}
+      {\fontsize{11}{14}\selectfont
+        Distance $1.29\times10^{-6}$}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.35cm}
+  \centering
+  \textbf{Each upper trophic level persists only when its invasion growth
+  exceeds its removal rate.}
+\end{frame}
+
+\begin{frame}{Full Coexistence at $P_3$}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.62\textwidth}
+      \includegraphics[height=0.56\textheight,width=\linewidth,keepaspectratio]{coexistence_P3_timeseries.png}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \keypoint{Theoretical equilibrium}
+      \[
+        \begin{pmatrix}
+          0.055067\\
+          0.804597\\
+          0.280534\\
+          0.081550
+        \end{pmatrix}
+      \]
+      \keypoint{Numerical distance}
+      \[
+        1.94\times10^{-11}
+      \]
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Slowly Damped Oscillations}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.64\textwidth}
+      \includegraphics[height=0.57\textheight,width=\linewidth,keepaspectratio]{oscillatory_interior_response_zoom.png}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \keypoint{Long-run evidence}
+      \begin{itemize}
+        \item After $t=500$: $23$ peaks in $y$, $20$ in $z$
+        \item Tail-mean distance to $P_3$: $4.66\times10^{-4}$
+        \item Late/middle amplitude ratio: $0.425$
+      \end{itemize}
+      \keypoint{Conclusion}\par
+      {\fontsize{11}{14}\selectfont
+      Damping is consistent with stable coexistence near a Hopf boundary.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Theory Predicts the Outcome}
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{clcc}
+    \toprule
+    Scenario & Theoretical target & Nearest state & Distance \\
+    \midrule
+    Washout & $P_0$ & $P_0$ & $5.55\times10^{-15}$ \\
+    Prey only & $P_1$ & $P_1$ & $2.57\times10^{-14}$ \\
+    Two-level survival & $P_2$ & $P_2$ & $1.29\times10^{-6}$ \\
+    Coexistence & $P_3$ & $P_3$ & $1.94\times10^{-11}$ \\
+    Oscillatory response & stable $P_3$ nearby & $P_3$ & $2.49\times10^{-3}$ at final time \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.45cm}
+  \begin{block}{What simulation demonstrates}
+    Numerical trajectories reproduce the equilibrium hierarchy and provide
+    evidence consistent with the analytical stability thresholds.
+  \end{block}
+
+\end{frame}

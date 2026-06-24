@@ -1,0 +1,46 @@
+% Slides 21--22: conclusions and Q&A.
+
+\begin{frame}{What the Project Establishes}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \keypoint{Reference conclusions}
+      \begin{itemize}
+        \item Distinct removal rates remove the simple conservation law.
+        \item Solutions are nonnegative, bounded, and dissipative; invasion
+              thresholds organize washout and coexistence.
+        \item Persistence can hold and Hopf bifurcation can create cycles.
+      \end{itemize}
+
+      \vspace{0.18cm}
+      \keypoint{Our numerical conclusions}
+      \par The simulator reproduces $P_0$--$P_3$, damped oscillations, and
+      removal-driven regime changes with robust RK4 results.
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \keypoint{Limitations}
+      \begin{itemize}
+        \item Parameters are constructed examples, not experimental estimates.
+        \item The project illustrates but does not continue a Hopf branch.
+        \item Initial-condition tests cannot prove global persistence, and
+              calibration data are unavailable.
+      \end{itemize}
+
+      \vspace{0.28cm}
+      \keypoint{Central lesson}\par
+      Every trophic level must grow fast enough on its equilibrium food supply
+      to overcome its own removal.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[plain]
+  \centering
+  \vspace{1.25cm}
+  {\color{HUSTNavy}\fontsize{40}{46}\selectfont\bfseries Questions?\par}
+  \vspace{0.45cm}
+  {\color{HUSTTeal}\fontsize{20}{25}\selectfont
+    Stability, simulation, sensitivity, or biological interpretation\par}
+  \vspace{0.9cm}
+  {\fontsize{14}{18}\selectfont\color{MidGray}
+    Code and reproducible outputs are available in the project repository.}
+\end{frame}

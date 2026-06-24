@@ -1,0 +1,94 @@
+% Slides 1--3: motivation and modeling approach.
+
+\begin{frame}[plain]
+  \vspace{0.25cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.72\textwidth}
+      {\color{HUSTNavy}\fontsize{32}{37}\selectfont\bfseries
+        Food-Chain Dynamics\\[0.08cm]
+        in a Chemostat\par}
+      \vspace{0.35cm}
+      {\color{HUSTTeal}\fontsize{17}{21}\selectfont
+        Stability, bifurcation, and distinct removal rates\par}
+      \vspace{0.55cm}
+      {\fontsize{13}{17}\selectfont
+        \CourseName\ Project\\
+        \SchoolName\par}
+      \vspace{0.38cm}
+      {\color{MidGray}\fontsize{10}{13}\selectfont
+        Mentor: \MentorName\\[0.1cm]
+        \TeamMembers\par}
+    \end{column}
+    \begin{column}{0.24\textwidth}
+      \raggedleft
+      \includegraphics[width=0.92\linewidth]{SOICT-HUST.png}
+      \vfill
+      {\color{MidGray}\fontsize{11}{14}\selectfont
+        \InstitutionName\\
+        \PresentationDate}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Question and Approach}
+  \begin{block}{Project question}
+    Under what removal and growth conditions do prey and predators persist,
+    wash out, coexist, or oscillate in a continuously operated chemostat?
+  \end{block}
+
+  \vspace{0.2cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \keypoint{What we reproduce}
+      \begin{itemize}
+        \item A nutrient--prey--predator--top-predator model.
+        \item Four equilibrium regimes, $P_0$ through $P_3$.
+        \item Stability, persistence, and near-Hopf behavior.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \keypoint{Why continuous-time ODEs}
+      \begin{itemize}
+        \item Concentrations evolve continuously in a well-mixed vessel.
+        \item Balance laws map directly to inflow, washout, growth, and predation.
+        \item Analysis and simulation use the same state equations.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{How the Chemostat Works}
+  \vspace{0.15cm}
+  \begin{center}
+    \setlength{\fboxsep}{3pt}%
+    \fontsize{13}{16}\selectfont
+    \mbox{\colorbox{NutrientBlue!12}{\strut\textcolor{NutrientBlue}{Nutrient $S$}}
+    $\longrightarrow$
+    \colorbox{PreyGreen!12}{\strut\textcolor{PreyGreen}{Prey $x$}}
+    $\longrightarrow$
+    \colorbox{PredatorOrange!12}{\strut\textcolor{PredatorOrange}{Predator $y$}}
+    $\longrightarrow$
+    \colorbox{TopRed!12}{\strut\textcolor{TopRed}{Top predator $z$}}}
+  \end{center}
+
+  \vspace{0.45cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \keypoint{Core assumptions}
+      \begin{itemize}
+        \item The vessel is continuously fed and perfectly mixed.
+        \item Each organism consumes only the level immediately below it.
+        \item Growth responses are increasing and saturating.
+        \item Initial concentrations are nonnegative.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \keypoint{Why removal rates matter}
+      \begin{itemize}
+        \item $D_i$ combines dilution washout and organism-specific death.
+        \item Distinct $D_1,D_2,D_3$ break the usual conservation law.
+        \item Survival depends on growth exceeding removal at every trophic level.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
