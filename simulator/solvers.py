@@ -10,6 +10,19 @@ from __future__ import annotations
 import math
 from typing import Callable
 
+
+def _validate_inputs(state0: list[float], t_end: float, dt: float) -> None:
+    """Validate common solver inputs before integration starts."""
+    if not state0:
+        raise ValueError("state0 must contain at least one component")
+    if not math.isfinite(dt) or dt <= 0.0:
+        raise ValueError(f"dt must be finite and positive, got {dt}")
+    if not math.isfinite(t_end) or t_end < 0.0:
+        raise ValueError(f"t_end must be finite and non-negative, got {t_end}")
+    if any(not math.isfinite(value) for value in state0):
+        raise ValueError("state0 values must be finite")
+
+
 def _clamp(state: list[float]) -> tuple[list[float], int]:
     """Clamp negative components to 0. Returns (clamped_state, clamp_count)."""
     clamped = 0
@@ -57,6 +70,7 @@ def euler(
     info : dict
         Diagnostics: total_clamps, exploded, steps.
     """
+    _validate_inputs(state0, t_end, dt)
     n = len(state0)
     n_steps = int(math.ceil(t_end / dt))
     times = [0.0]
@@ -67,20 +81,21 @@ def euler(
     for i in range(n_steps):
         t = times[-1]
         y = states[-1]
+        step = min(dt, t_end - t)
         dydt = rhs_fn(y)
 
-        new_y = [y[j] + dt * dydt[j] for j in range(n)]
+        new_y = [y[j] + step * dydt[j] for j in range(n)]
 
         new_y, clamps = _clamp(new_y)
         total_clamps += clamps
 
         if _check_explode(new_y):
             exploded = True
-            times.append(t + dt)
+            times.append(t + step)
             states.append(new_y)
             break
 
-        times.append(t + dt)
+        times.append(t + step)
         states.append(new_y)
 
     return times, states, {
@@ -118,6 +133,7 @@ def rk4(
     info : dict
         Diagnostics: total_clamps, exploded, steps.
     """
+    _validate_inputs(state0, t_end, dt)
     n = len(state0)
     n_steps = int(math.ceil(t_end / dt))
     times = [0.0]
@@ -128,17 +144,20 @@ def rk4(
     for i in range(n_steps):
         t = times[-1]
         y = states[-1]
+        step = min(dt, t_end - t)
 
         k1 = rhs_fn(y)
-        y_k2 = [y[j] + 0.5 * dt * k1[j] for j in range(n)]
+        y_k2 = [y[j] + 0.5 * step * k1[j] for j in range(n)]
         k2 = rhs_fn(y_k2)
-        y_k3 = [y[j] + 0.5 * dt * k2[j] for j in range(n)]
+        y_k3 = [y[j] + 0.5 * step * k2[j] for j in range(n)]
         k3 = rhs_fn(y_k3)
-        y_k4 = [y[j] + dt * k3[j] for j in range(n)]
+        y_k4 = [y[j] + step * k3[j] for j in range(n)]
         k4 = rhs_fn(y_k4)
 
         new_y = [
-            y[j] + (dt / 6.0) * (k1[j] + 2.0 * k2[j] + 2.0 * k3[j] + k4[j])
+            y[j]
+            + (step / 6.0)
+            * (k1[j] + 2.0 * k2[j] + 2.0 * k3[j] + k4[j])
             for j in range(n)
         ]
 
@@ -147,11 +166,11 @@ def rk4(
 
         if _check_explode(new_y):
             exploded = True
-            times.append(t + dt)
+            times.append(t + step)
             states.append(new_y)
             break
 
-        times.append(t + dt)
+        times.append(t + step)
         states.append(new_y)
 
     return times, states, {
