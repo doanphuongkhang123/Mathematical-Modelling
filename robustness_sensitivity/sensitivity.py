@@ -8,7 +8,10 @@ import chemostat as cx
 from chemostat import PARAMETER_NAMES, Params, State, params_from_dict
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_DATA = os.path.join(THIS_DIR, "data", "baseline_scenarios.csv")
+# Single source of truth for scenario parameters (shared with equilibria_stability
+# and theorem_validation): the 13-scenario file. Initial states are not read from
+# it; the sweep/elasticity cross-checks use the fixed DEFAULT_STATE0 below.
+DEFAULT_DATA = os.path.join(THIS_DIR, "..", "equilibria_stability", "data", "scenario_parameters.csv")
 DEFAULT_OUTDIR = os.path.join(THIS_DIR, "outputs", "sensitivity")
 DEFAULT_STATE0: State = (1.0, 0.5, 0.3, 0.1)
 
@@ -211,7 +214,7 @@ def main():
     parser.add_argument("--data", default=DEFAULT_DATA, help="Baseline scenarios CSV.")
     parser.add_argument("--outdir", default=DEFAULT_OUTDIR, help="Output directory.")
     parser.add_argument("--params", default="D1,D2,D3",
-                        help="Comma-separated parameters to sweep (Experiment A).")
+                        help="Comma-separated removal rates to sweep.")
     parser.add_argument("--rel-delta", type=float, default=0.01,
                         help="Relative perturbation for elasticity (default 1%%).")
     parser.add_argument("--forward", action="store_true",
@@ -237,17 +240,14 @@ def main():
 
     # ---- Experiment 1 --- #
     print("\n=== Experiment 1 ===")
-    all_rows: list[dict[str, object]] = []
     for param in [p.strip() for p in args.params.split(",") if p.strip()]:
         low, high, num = DEFAULT_SWEEPS.get(param, (0.1, 2.0, 40))
         rows = sweep_parameter(base, param, low, high, num,
                                DEFAULT_STATE0, args.dt, args.t_end, args.method)
         path = os.path.join(args.outdir, f"sweep_{param}.csv")
         write_sweep_csv(rows, path)
-        all_rows.extend(rows)
         print(summarize_sweep(rows, param))
         print(f"    -> wrote {path}")
-    write_sweep_csv(all_rows, os.path.join(args.outdir, "sweep_all.csv"))
 
     # ---- Experiment 2 --- #
     print("\n=== Experiment 2 ===")

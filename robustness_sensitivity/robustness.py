@@ -6,7 +6,7 @@ import os
 from typing import Optional
 
 import chemostat as cx
-from chemostat import PARAMETER_NAMES, Params, State, params_from_dict
+from chemostat import Params, State, params_from_dict
 from sensitivity import DEFAULT_DATA, DEFAULT_STATE0, read_baselines
 
 
@@ -125,69 +125,6 @@ def summarize_step_size(rows: list[dict[str, object]]) -> str:
         )
     return "\n".join(lines)
 
-# Experiment 4: initial-condition robustness
-DEFAULT_INITIAL_CONDITIONS: list[State] = [
-    (1.0, 0.5, 0.3, 0.1),     # the standard start
-    (0.2, 0.2, 0.2, 0.2),     # small, balanced
-    (0.8, 1.0, 0.5, 0.3),     # large predators
-    (0.5, 0.05, 0.05, 0.05),  # tiny organisms (near boundary)
-    (1.0, 0.1, 0.6, 0.2),     # asymmetric
-    (0.05, 0.8, 0.28, 0.08),  # already near the coexistence equilibrium
-]
-
-
-def initial_condition_study(base: dict[str, float], initial_conditions: list[State],
-                    dt: float, t_end: float, method: str) -> list[dict[str, object]]:
-    
-    """Integrate from each initial condition and classify the outcome."""
-    params = params_from_dict(base)
-    equilibrium = reference_equilibrium(params)
-
-    rows: list[dict[str, object]] = []
-    for state0 in initial_conditions:
-        sim = cx.integrate(state0, params, dt=dt, t_end=t_end, method=method)
-        fs = sim.final_state
-        regime = "exploded" if sim.exploded else cx.classify_regime(fs)
-        err_eq = distance(fs, equilibrium) if equilibrium is not None else float("nan")
-        rows.append(
-            {
-                "S0": state0[0], "x0": state0[1], "y0": state0[2], "z0": state0[3],
-                "final_S": fs[0], "final_x": fs[1], "final_y": fs[2], "final_z": fs[3],
-                "regime": regime,
-                "dist_to_equilibrium": err_eq,
-            }
-        )
-    return rows
-
-
-def write_initial_condition_csv(rows: list[dict[str, object]], path: str) -> None:
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    fields = [
-        "S0", "x0", "y0", "z0",
-        "final_S", "final_x", "final_y", "final_z",
-        "regime", "dist_to_equilibrium",
-    ]
-    with open(path, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
-
-
-def summarize_initial_conditions(rows: list[dict[str, object]]) -> str:
-    regimes = {row["regime"] for row in rows}
-    max_err = max((row["dist_to_equilibrium"] for row in rows
-                   if isinstance(row["dist_to_equilibrium"], float)), default=float("nan"))
-    verdict = ("ROBUST: every initial condition reached the same regime"
-               if len(regimes) == 1
-               else f"NOT ROBUST: outcomes diverged into {sorted(regimes)}")
-    lines = [f"  Initial-condition robustness ({len(rows)} starts):",
-             f"    distinct outcomes: {sorted(regimes)}",
-             f"    max distance to equilibrium across starts: {max_err:.3e}",
-             f"    verdict: {verdict}"]
-    return "\n".join(lines)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Robustness analysis for the chemostat food chain.")
     parser.add_argument("--baseline", default="coexistence_P3",
@@ -197,13 +134,11 @@ def main() -> None:
     parser.add_argument("--dt0", type=float, default=0.4,
                         help="Coarsest step; the study uses dt0, dt0/2, dt0/4, ...")
     parser.add_argument("--levels", type=int, default=6,
-                        help="Number of step-halving levels for Experiment C.")
+                        help="Number of step-halving levels for the step-size study.")
     parser.add_argument("--t-acc", type=float, default=2.0,
                         help="Short transient horizon for the convergence-order estimate.")
     parser.add_argument("--t-end", type=float, default=400.0,
-                        help="Long horizon for the long-run regime and IC study.")
-    parser.add_argument("--method", default="rk4", choices=["rk4", "euler"],
-                        help="Solver for the initial-condition study.")
+                        help="Long horizon for the long-run regime study.")
     args = parser.parse_args()
 
     baselines = read_baselines(args.data)
@@ -222,15 +157,6 @@ def main() -> None:
     path = os.path.join(args.outdir, "step_size.csv")
     write_step_size_csv(rows, path)
     print(summarize_step_size(rows))
-    print(f"    -> wrote {path}")
-
-    # ---- Experiment 4 --- #
-    print("\n=== Experiment 4: initial-condition robustness ===")
-    rows = initial_condition_study(base, DEFAULT_INITIAL_CONDITIONS,
-                                   dt=min(dt_values), t_end=args.t_end, method=args.method)
-    path = os.path.join(args.outdir, "initial_conditions.csv")
-    write_initial_condition_csv(rows, path)
-    print(summarize_initial_conditions(rows))
     print(f"    -> wrote {path}")
 
 

@@ -1,13 +1,9 @@
 from __future__ import annotations
 import argparse
 import csv
-import math
 import matplotlib.pyplot as plt
 import os
-from typing import Optional
-import chemostat as cx
-from sensitivity import DEFAULT_DATA, DEFAULT_STATE0, OUTPUT_LABELS, read_baselines
-from robustness import DEFAULT_INITIAL_CONDITIONS
+from sensitivity import OUTPUT_LABELS
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 SENS_DIR = os.path.join(THIS_DIR, "outputs", "sensitivity")
@@ -136,56 +132,16 @@ def plot_step_size(plt):
     print(f"  wrote {out}")
 
 
-def plot_initial_conditions(plt, baseline: str):
-    """Time series from several initial conditions, showing convergence."""
-    baselines = read_baselines(DEFAULT_DATA)
-    if baseline not in baselines:
-        return
-    params = cx.params_from_dict(baselines[baseline])
-    equilibrium = cx.compute_all_equilibria(params)
-    target = next((equilibrium[k] for k in ("P3", "P2", "P1", "P0")
-                   if equilibrium[k] is not None), None)
-
-    fig, axes = plt.subplots(2, 2, figsize=(9.0, 6.0), sharex=True)
-    names = ["S (nutrient)", "x (prey)", "y (predator 1)", "z (predator 2)"]
-    for state0 in DEFAULT_INITIAL_CONDITIONS:
-        sim = cx.integrate(state0, params, dt=0.02, t_end=80.0, method="rk4", sample_every=10)
-        for k in range(4):
-            ax = axes[k // 2][k % 2]
-            ax.plot(sim.times, [s[k] for s in sim.trajectory], linewidth=1,
-                    label=f"start {tuple(round(v, 2) for v in state0)}")
-    for k in range(4):
-        ax = axes[k // 2][k % 2]
-        if target is not None:
-            ax.axhline(target[k], color="grey", linestyle="--", linewidth=1)
-        ax.set_ylabel(names[k])
-        ax.grid(True, alpha=0.3)
-    axes[1][0].set_xlabel("time t")
-    axes[1][1].set_xlabel("time t")
-    handles, labels = axes[0][0].get_legend_handles_labels()
-    fig.suptitle(f"Initial-condition robustness ({baseline}):\nall starts reach the same equilibrium (dashed line)",
-                 y=0.99)
-    fig.legend(handles, labels, fontsize=7, loc="lower center", ncol=3, bbox_to_anchor=(0.5, 0.0))
-    fig.tight_layout(rect=(0, 0.08, 1, 0.92))
-    out = os.path.join(FIG_DIR, "initial_conditions_timeseries.png")
-    fig.savefig(out, dpi=130)
-    plt.close(fig)
-    print(f"  wrote {out}")
-
-
 def main():
     parser = argparse.ArgumentParser(description="Plot the robustness/sensitivity results.")
     parser.add_argument("--baseline", default="coexistence_P3")
-    args = parser.parse_args()
-
-    
+    parser.parse_args()
 
     os.makedirs(FIG_DIR, exist_ok=True)
     print(f"Writing figures to {FIG_DIR}")
     plot_sweeps(plt)
     plot_elasticity(plt)
     plot_step_size(plt)
-    plot_initial_conditions(plt, args.baseline)
 
 
 if __name__ == "__main__":

@@ -13,8 +13,7 @@ from model import PARAMETER_NAMES, Monod, Params, State, params_from_dict
 from analysis import compute_all_equilibria, compute_P0, compute_P1, compute_P2, compute_P3, p0_stability
 
 from simulator.rhs import rhs
-from simulator.solvers import euler, rk4  
-from simulator.diagnostics import diagnose  
+from simulator.solvers import euler, rk4
 
 __all__ = [
     # re-exported model / equilibrium API
@@ -22,7 +21,7 @@ __all__ = [
     "compute_all_equilibria", "compute_P0", "compute_P1", "compute_P2",
     "compute_P3", "p0_stability",
     # re-exported simulator API
-    "rhs", "euler", "rk4", "diagnose",
+    "rhs", "euler", "rk4",
     # helpers added here
     "integrate", "SimulationResult", "classify_regime",
     "highest_existing_equilibrium", "in_invariant_region", "eps_nonneg",
