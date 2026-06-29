@@ -25,6 +25,7 @@ for _p in (PROJECT_DIR, EQUI_DIR):
 
 from model import PARAMETER_NAMES, params_from_dict          # noqa: E402
 from analysis import compute_all_equilibria, p0_stability    # noqa: E402
+from stability import jacobian, charpoly, poly_roots         # noqa: E402
 from simulator.rhs import rhs                                 # noqa: E402
 from simulator.solvers import rk4                             # noqa: E402
 
@@ -38,82 +39,13 @@ def _params(raw: dict) -> "object":
 
 
 # --- Local stability via the Jacobian (the paper's eigenvalue analysis) --------
-# All pure-stdlib: build the analytic Jacobian, get the characteristic polynomial
-# with the Faddeev-LeVerrier algorithm, then its roots with Durand-Kerner.  This
-# realises the Routh-Hurwitz / Hopf-bifurcation study of Sections 2 and 4.
-
-def jacobian(state, params):
-    """Analytic Jacobian of the model in simulator/rhs.py at `state`."""
-    S, x, y, z = state
-    f1, f1p = params.f1.value(S), params.f1.derivative(S)
-    f2, f2p = params.f2.value(x), params.f2.derivative(x)
-    f3, f3p = params.f3.value(y), params.f3.derivative(y)
-    return [
-        [-1.0 - f1p * x, -f1,                          0.0,                          0.0],
-        [ f1p * x,        f1 - params.D1 - f2p * y,    -f2,                           0.0],
-        [ 0.0,            f2p * y,                      f2 - params.D2 - f3p * z,    -f3],
-        [ 0.0,            0.0,                          f3p * z,                      f3 - params.D3],
-    ]
-
-
-def _charpoly(A):
-    """Characteristic-polynomial coefficients [1, c1, c2, c3, c4] (Faddeev-LeVerrier)."""
-    n = len(A)
-    I = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-
-    def matmul(P, Q):
-        return [[sum(P[i][k] * Q[k][j] for k in range(n)) for j in range(n)] for i in range(n)]
-
-    def add_diag(P, s):
-        return [[P[i][j] + (s if i == j else 0.0) for j in range(n)] for i in range(n)]
-
-    def trace(P):
-        return sum(P[i][i] for i in range(n))
-
-    coeffs = [1.0]
-    M = I
-    for k in range(1, n + 1):
-        AM = matmul(A, M)
-        ck = -trace(AM) / k
-        coeffs.append(ck)
-        M = add_diag(AM, ck)
-    return coeffs
-
-
-def _poly_roots(coeffs):
-    """All roots (possibly complex) of a monic real polynomial via Durand-Kerner."""
-    n = len(coeffs) - 1
-    if n <= 0:
-        return []
-
-    def evalp(z):
-        r = 0j
-        for c in coeffs:
-            r = r * z + c
-        return r
-
-    roots = [(0.4 + 0.9j) ** k for k in range(n)]
-    for _ in range(200):
-        moved = 0.0
-        for i in range(n):
-            num = evalp(roots[i])
-            den = 1 + 0j
-            for j in range(n):
-                if j != i:
-                    den *= (roots[i] - roots[j])
-            if den == 0:
-                den = 1e-12
-            delta = num / den
-            roots[i] -= delta
-            moved = max(moved, abs(delta))
-        if moved < 1e-12:
-            break
-    return roots
-
+# jacobian / charpoly / poly_roots are imported from equilibria_stability/stability.py
+# (single shared source of truth, also used by theorem_validation).  This realises
+# the Routh-Hurwitz / Hopf-bifurcation study of Sections 2 and 4.
 
 def stability_at(state, params):
     """Eigenvalues + a plain-language classification of local stability."""
-    eigs = _poly_roots(_charpoly(jacobian(state, params)))
+    eigs = poly_roots(charpoly(jacobian(state, params)))
     eig_list = [[e.real, e.imag] for e in eigs]
     max_re = max(e.real for e in eigs)
     has_pos = any(e.real > 1e-7 for e in eigs)

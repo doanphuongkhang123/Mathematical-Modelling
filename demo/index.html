@@ -126,7 +126,10 @@
       <button class="primary" id="play">▶ Play</button>
       <button class="ghost" id="reset">↺ Reset</button>
     </div>
-    <div class="sname">Speed fixed at <b>0.5×</b>. Tip: load <b>Coexistence (P₃)</b>,
+    <div class="slider" style="margin-top:10px">Speed-up <span class="val" id="v-speed">1.00×</span>
+      <input type="range" id="speed" min="0.8" max="1.2" step="0.05" value="1.0"></div>
+    <div class="sname">Runs to at least <b>t = 100</b> before it can auto-stop, so a
+       post-convergence Hopf oscillation still shows. Tip: load <b>Coexistence (P₃)</b>,
        Play, then drag <b>D₃</b> up — watch top predator
        <span style="color:var(--z)">z</span> wash out (P₃→P₂) and the eigenvalues
        &amp; thresholds update live.</div>
@@ -220,7 +223,8 @@ const SCENARIOS = {
 const INIT = [0.5, 0.30, 0.20, 0.10];
 const COLORS = {S:"#3ba7ff", x:"#36d399", y:"#ffae42", z:"#ff5d6c"};
 const KEYS = ["S","x","y","z"];
-const SPEED = 0.5;            // fixed simulation speed (requested)
+const SPEED = 0.5;            // base simulation speed
+let speedup = 1.0;           // user speed-up multiplier (0.8–1.2; 1.0 = base speed)
 
 // ---- State ----
 let params = {};
@@ -238,7 +242,7 @@ let drag = null;              // {mode:'pan'|'scroll', x0, vs0}
 let running = false, inFlight = false, timer = null;
 let lastRegime = null;
 let converged = false, settleCount = 0;
-const SETTLE_EPS = 8e-5, SETTLE_NEEDED = 3;
+const SETTLE_EPS = 8e-5, SETTLE_NEEDED = 3, MIN_T = 100;  // never auto-stop before t=100
 function clearConvergence(){ converged = false; settleCount = 0; }
 
 // ---- DOM ----
@@ -275,7 +279,7 @@ async function refreshEquilibria(){
 }
 async function tick(){
   if(!running||inFlight) return; inFlight=true;
-  const span=0.8*SPEED, prevState=state.slice();
+  const span=0.8*SPEED*speedup, prevState=state.slice();
   try{
     const res=await post("/step",{params, state, span, dt:0.01, samples:24});
     if(res.error){ $("err").textContent=res.error; running=false; updatePlayBtn(); return; }
@@ -287,7 +291,8 @@ async function tick(){
     let maxRate=0; for(let i=0;i<4;i++) maxRate=Math.max(maxRate,Math.abs(state[i]-prevState[i]));
     maxRate/=Math.max(span,1e-9);
     if(maxRate<SETTLE_EPS && !detectOscillation()) settleCount++; else settleCount=0;
-    if(settleCount>=SETTLE_NEEDED){ converged=true; running=false; updatePlayBtn(); }
+    // require a minimum run length so a post-convergence Hopf oscillation can re-emerge
+    if(settleCount>=SETTLE_NEEDED && tGlobal>=MIN_T){ converged=true; running=false; updatePlayBtn(); }
   }catch(e){ $("err").textContent=String(e); }
   finally{ inFlight=false; }
 }
@@ -525,6 +530,10 @@ PARAM_NAMES.forEach(n=>{
     $("btn-f"+i).classList.toggle("on");
   });
 });
+// speed-up slider (0.8–1.2; 1.0 = base speed)
+const speedEl=$("speed");
+function readSpeed(){ speedup=+speedEl.value; $("v-speed").textContent=speedup.toFixed(2)+"×"; }
+speedEl.addEventListener("input",readSpeed); readSpeed();
 $("play").addEventListener("click",()=>{ if(!running&&converged){clearConvergence();resetTrajectory();} running=!running; updatePlayBtn(); });
 $("reset").addEventListener("click",()=>{ clearConvergence(); resetTrajectory(); running=true; updatePlayBtn(); refreshEquilibria(); });
 

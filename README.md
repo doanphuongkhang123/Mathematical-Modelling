@@ -80,3 +80,11 @@ results/main_scenarios/
 The default workflow uses RK4 with `dt=0.01`, runs the four equilibrium
 scenarios to `t=500`, and runs the slowly damped oscillatory scenario to
 `t=2000`.
+
+## Run Validation Theorem Part
+
+Run:
+
+```bash
+python3 theorem_validation/run_all.py
+```

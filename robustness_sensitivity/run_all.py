@@ -22,7 +22,8 @@ def run(script: str, extra: list[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run all robustness/sensitivity experiments.")
     parser.add_argument("--baseline", default="coexistence_P3",
-                        help="Baseline scenario name (must exist in data/baseline_scenarios.csv).")
+                        help="Baseline scenario name (must exist in "
+                             "equilibria_stability/data/scenario_parameters.csv).")
     parser.add_argument("--no-plots", action="store_true", help="Skip the plotting stage.")
     args = parser.parse_args()
 
