@@ -1,0 +1,81 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\definecolor{HUSTNavy}{HTML}{003A70}
+\definecolor{HUSTTeal}{HTML}{008C95}
+\definecolor{AccentOrange}{HTML}{E87924}
+\definecolor{AccentRed}{HTML}{B3263B}
+\definecolor{NutrientBlue}{HTML}{246BCE}
+\definecolor{PreyGreen}{HTML}{218739}
+\definecolor{PredatorOrange}{HTML}{D66A00}
+\definecolor{TopRed}{HTML}{B3263B}
+\definecolor{SoftGray}{HTML}{F1F3F5}
+\definecolor{MidGray}{HTML}{667085}
+\definecolor{Ink}{HTML}{17212B}
+
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=0.72cm,text margin right=0.72cm}
+
+\setbeamercolor{normal text}{fg=Ink,bg=white}
+\setbeamercolor{structure}{fg=HUSTNavy}
+\setbeamercolor{frametitle}{fg=HUSTNavy,bg=white}
+\setbeamercolor{block title}{fg=white,bg=HUSTNavy}
+\setbeamercolor{block body}{fg=Ink,bg=SoftGray}
+\setbeamercolor{alerted text}{fg=AccentRed}
+
+\setbeamerfont{title}{series=\bfseries,size=\fontsize{34}{39}\selectfont}
+\setbeamerfont{subtitle}{size=\fontsize{18}{22}\selectfont}
+\setbeamerfont{frametitle}{series=\bfseries,size=\fontsize{23}{27}\selectfont}
+\setbeamerfont{normal text}{size=\fontsize{14}{17}\selectfont}
+\setbeamerfont{block title}{series=\bfseries,size=\fontsize{14}{17}\selectfont}
+\setbeamerfont{block body}{size=\fontsize{13}{16}\selectfont}
+
+\setbeamertemplate{frametitle}{%
+  \vspace{0.2cm}%
+  \insertframetitle\par%
+  \vspace{0.08cm}%
+  {\color{HUSTTeal}\rule{\textwidth}{1.2pt}}%
+}
+
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.80\paperwidth,ht=3.2ex,dp=1.3ex,leftskip=.72cm]{author in head/foot}%
+      \color{MidGray}\fontsize{9}{11}\selectfont
+      \ProjectTitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.20\paperwidth,ht=3.2ex,dp=1.3ex,rightskip=.72cm plus1fil]{date in head/foot}%
+      \color{HUSTNavy}\fontsize{9}{11}\selectfont
+      \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\setbeamertemplate{itemize item}{\color{HUSTTeal}\raise0.25ex\hbox{\small$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\color{AccentOrange}\raise0.2ex\hbox{\scriptsize$\bullet$}}
+\setlength{\leftmargini}{1.2em}
+\setlength{\leftmarginii}{1.0em}
+
+\newcommand{\Sstate}{\textcolor{NutrientBlue}{S}}
+\newcommand{\Xstate}{\textcolor{PreyGreen}{x}}
+\newcommand{\Ystate}{\textcolor{PredatorOrange}{y}}
+\newcommand{\Zstate}{\textcolor{TopRed}{z}}
+\newcommand{\keypoint}[1]{\textcolor{HUSTNavy}{\textbf{#1}}}
+\newcommand{\sourcefoot}[1]{\vfill{\color{MidGray}\fontsize{7}{9}\selectfont Source: #1}}
+\newcommand{\backupbegin}{%
+  \newcounter{finalframe}%
+  \setcounter{finalframe}{\value{framenumber}}%
+}
+\newcommand{\backupend}{%
+  \setcounter{framenumber}{\value{finalframe}}%
+}
+
+\graphicspath{{../results/main_scenarios/}{../robustness_sensitivity/outputs/figures/}{../MathModelReport/images/}}

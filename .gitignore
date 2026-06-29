@@ -1,3 +1,25 @@
-results
+results/*
+!results/main_scenarios/
+!results/main_scenarios/**
 __pycache__/
 tests/
+!simulator/tests/
+!simulator/tests/**
+
+# Local operating-system files
+.DS_Store
+
+# LaTeX build products (compiled PDFs remain tracked deliverables)
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# Superseded local report draft; MathModelReport/ is canonical.
+report_latex/

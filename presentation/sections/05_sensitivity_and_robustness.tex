@@ -1,0 +1,86 @@
+% Slides 18--20: sensitivity, robustness, and interactive reproducibility.
+
+\begin{frame}{Removal Rates Change the Regime}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.51\textwidth}
+      \centering
+      \includegraphics[height=0.50\textheight]{elasticity_heatmap.png}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \keypoint{Coexistence lost near}
+      \renewcommand{\arraystretch}{1.18}
+      \begin{tabular}{ccc}
+        \toprule
+        Sweep & Boundary & Transition \\
+        \midrule
+        $D_1$ & $1.0$ & $P_3\to P_2$ \\
+        $D_2$ & $1.4$ & $P_3\to P_2$ \\
+        $D_3$ & $0.925$ & $P_3\to P_2$ \\
+        \bottomrule
+      \end{tabular}
+
+      \vspace{0.35cm}
+      \keypoint{Largest local effects on $z_3$}
+      \begin{itemize}
+        \item $D_2$: elasticity $-5.742$
+        \item $a_2$: elasticity $+4.501$
+        \item $D_1$: elasticity $-3.552$
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{The Model Is Numerically Robust}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \centering
+      \includegraphics[width=0.96\linewidth]{step_size_convergence.png}
+      \keypoint{Step-size test}
+      {\fontsize{10}{12}\selectfont
+        RK4 converges; coarse Euler may select the wrong regime.}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \centering
+      \includegraphics[width=0.96\linewidth]{initial_conditions_timeseries.png}
+      \keypoint{Initial-condition test}
+      {\fontsize{10}{12}\selectfont
+        Six positive starts reached $P_3$ within $1.95\times10^{-11}$.}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}{Interactive and Reproducible}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.62\textwidth}
+      \includegraphics[width=\linewidth]{UI.png}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \keypoint{Run the simulator}
+      \vspace{0.08cm}
+      {\fontsize{9}{11}\selectfont\ttfamily
+        python3 -m simulator.runner\\
+        --scenario coexistence\_P3
+      }
+
+      \vspace{0.35cm}
+      \keypoint{Run every experiment}
+      \vspace{0.08cm}
+      {\fontsize{9}{11}\selectfont\ttfamily
+        python3 -m\\
+        main\_simulations.run\_all\\[0.12cm]
+        python3\\
+        robustness\_sensitivity/\\
+        run\_all.py
+      }
+
+      \vspace{0.35cm}
+      \keypoint{Start the browser demo}
+      \vspace{0.08cm}
+      {\fontsize{9}{11}\selectfont\ttfamily
+        python3 -m demo.app
+      }
+
+    \end{column}
+  \end{columns}
+\end{frame}

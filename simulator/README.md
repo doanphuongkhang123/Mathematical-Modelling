@@ -73,6 +73,11 @@ From `scenario_parameters.csv`:
 
 ```bash
 cd Mathematical-Modelling
+
+# Run the complete simulator test suite
+python3 -m unittest discover -s simulator/tests -t .
+
+# Or run each module separately
 python3 -m simulator.tests.test_rhs
 python3 -m simulator.tests.test_solvers
 python3 -m simulator.tests.test_diagnostics
