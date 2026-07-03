@@ -1,19 +1,4 @@
-"""Shared helpers for the theorem-validation experiments.
 
-This module deliberately reuses the *existing* project code so that the
-validation experiments describe exactly the same system as the rest of the
-repository:
-
-* the model, equilibrium solver and integrator come from the
-  ``robustness_sensitivity/chemostat.py`` re-export shim
-  (which itself re-exports ``equilibria_stability`` and ``simulator``);
-* the analytic Jacobian and its eigenvalues are computed here with the same
-  pure-stdlib routines used by ``demo/app.py`` (Faddeev--LeVerrier for the
-  characteristic polynomial, Durand--Kerner for its roots).  These realise the
-  Routh--Hurwitz / Hopf eigenvalue analysis of Sections 2 and 4 of the paper.
-
-Nothing in the existing project is modified; this file only *imports* it.
-"""
 
 from __future__ import annotations
 
@@ -22,7 +7,7 @@ import math
 import os
 import sys
 
-# --- Make the project's own modules importable ---------------------------------
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(THIS_DIR)
 ROBUSTNESS_DIR = os.path.join(PROJECT_ROOT, "robustness_sensitivity")
@@ -31,14 +16,14 @@ for _p in (PROJECT_ROOT, ROBUSTNESS_DIR, EQUILIBRIA_DIR):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import chemostat as cx                                     # noqa: E402
-from chemostat import (                                    # noqa: E402,F401
+import chemostat as cx                                    
+from chemostat import (                                    
     PARAMETER_NAMES, Params, State, params_from_dict,
     compute_all_equilibria, compute_P0, compute_P1, compute_P2, compute_P3,
     p0_stability, integrate, classify_regime, in_invariant_region,
 )
 # Local-stability primitives are shared with demo/app.py (single source of truth).
-from stability import (                                    # noqa: E402,F401
+from stability import (                                    
     jacobian, charpoly, poly_roots, eigenvalues, classify_eigs,
 )
 
@@ -51,7 +36,7 @@ FIG_DIR = os.path.join(OUT_DIR, "figures")
 SCENARIO_CSV = os.path.join(EQUILIBRIA_DIR, "data", "scenario_parameters.csv")
 
 
-# --- Scenario input ------------------------------------------------------------
+# --- Scenario input ----
 
 def read_scenarios(path: str = SCENARIO_CSV) -> dict[str, dict[str, float]]:
     """Return {scenario_name: {param: value}} from a parameter CSV."""
@@ -80,8 +65,6 @@ def linspace(low: float, high: float, num: int) -> list[float]:
 # Jacobian / charpoly / poly_roots / eigenvalues / classify_eigs are imported
 # from equilibria_stability/stability.py above (single shared source of truth).
 
-
-# --- small numeric utilities ---------------------------------------------------
 
 def distance(a: State, b: State) -> float:
     return math.sqrt(sum((a[i] - b[i]) ** 2 for i in range(4)))

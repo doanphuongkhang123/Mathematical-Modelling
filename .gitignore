@@ -23,3 +23,5 @@ tests/
 
 # Superseded local report draft; MathModelReport/ is canonical.
 report_latex/
+
+.identifier

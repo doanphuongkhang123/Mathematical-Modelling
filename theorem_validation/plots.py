@@ -1,10 +1,3 @@
-"""Figures for the theorem-validation experiments (TV1--TV4).
-
-Reads the CSVs written by the validate_*.py scripts and, where a phase portrait
-or time series is needed, recomputes trajectories directly through ``_common``
-(the same model/solver as the rest of the project).  Pure matplotlib.
-"""
-
 from __future__ import annotations
 
 import csv

@@ -6,10 +6,8 @@ import os
 
 import _common as C
 
-
-# ----------------------------------------------------------------------------
 # PART A -- uniform persistence
-# ----------------------------------------------------------------------------
+
 PERSISTENCE_STARTS: list[C.State] = [
     (1.0, 0.5, 0.3, 0.1),
     (0.2, 0.2, 0.2, 0.2),
@@ -43,9 +41,8 @@ def persistence_study(base: dict[str, float], starts: list[C.State],
                   "persistent": eta > 1e-4}
 
 
-# ----------------------------------------------------------------------------
 # PART B -- Hopf bifurcation at P3
-# ----------------------------------------------------------------------------
+
 
 def quartic_hopf_quantity(coeffs: list[float]):
     """Phi = d1 d2 d3 - d3^2 - d1^2 d4 from charpoly [1,d1,d2,d3,d4]."""

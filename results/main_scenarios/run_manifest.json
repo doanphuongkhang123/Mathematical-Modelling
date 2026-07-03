@@ -10,7 +10,7 @@
   "equilibrium_t_end": 500.0,
   "oscillatory_t_end": 2000.0,
   "sample_every": 10,
-  "input_csv": "equilibria_stability\\data\\scenario_parameters.csv",
+  "input_csv": "equilibria_stability/data/scenario_parameters.csv",
   "scenarios": [
     {
       "name": "washout_P0",
